@@ -41,7 +41,8 @@ public class MySqlCategoryDao extends MySqlDaoBase implements CategoryDao
                                             resultSet.getString("description")
                                             ));
             }
-        } catch (SQLException e) {
+        }
+        catch (SQLException e) {
             throw new RuntimeException(e);
         }
         return categories;
@@ -70,7 +71,8 @@ public class MySqlCategoryDao extends MySqlDaoBase implements CategoryDao
                     );
                 }
             }
-        } catch (SQLException e) {
+        }
+        catch (SQLException e) {
             throw new RuntimeException(e);
         }
         return newCategory;
@@ -111,20 +113,68 @@ public class MySqlCategoryDao extends MySqlDaoBase implements CategoryDao
     @Override
     public Category create(Category category)
     {
+        String sql =
+                """
+                INSERT INTO easyshop.categories(name,description)
+                        VALUES(?,?);
+                """;
+        try(Connection connection = super.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(sql)){
+                preparedStatement.setString(1, category.getName());
+                preparedStatement.setString(2, category.getDescription());
+                preparedStatement.executeUpdate();
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
         // create a new category
-        return null;
+        return category;
     }
 
     @Override
     public void update(int categoryId, Category category)
     {
         // update category
+        String sql =
+                """
+                UPDATE easyshop.categories
+                SET name = ?,description = ?
+                WHERE category_id = ?;
+                """;
+        try(Connection connection = super.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(sql)){
+
+            preparedStatement.setString(1, category.getName());
+            preparedStatement.setString(2, category.getDescription());
+            preparedStatement.setInt(3, categoryId);
+
+            System.out.printf("Updated rows:%d\n", preparedStatement.executeUpdate());
+
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void delete(int categoryId)
     {
         // delete category
+        String sql =
+                """
+                DELETE FROM easyshop.categories WHERE category_id = (?);
+                """;
+        try(Connection connection = super.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(sql)){
+            preparedStatement.setInt(1,categoryId);
+            
+            preparedStatement.executeUpdate();
+
+            System.out.printf("Updated rows:%d\n", preparedStatement.executeUpdate());
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private Category mapRow(ResultSet row) throws SQLException
