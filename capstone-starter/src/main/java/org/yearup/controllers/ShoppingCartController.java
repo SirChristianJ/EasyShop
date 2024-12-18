@@ -70,7 +70,7 @@ public class ShoppingCartController
     // https://localhost:8080/cart/products/15 (15 is the productId to be added
     @PostMapping()
     @PreAuthorize("permitAll()")
-    public ShoppingCart insert(Principal principal, @RequestBody ShoppingCartItem shoppingCartItem)
+    public ShoppingCart insert(@RequestBody ShoppingCartItem shoppingCartItem, Principal principal)
     {
         String userName = principal.getName();
 
