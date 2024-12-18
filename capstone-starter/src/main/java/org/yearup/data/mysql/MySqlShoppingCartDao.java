@@ -27,12 +27,13 @@ public class MySqlShoppingCartDao extends MySqlDaoBase implements ShoppingCartDa
     public ShoppingCart getByUserId(int userId) {
         System.out.println("getByUserId called");
         ShoppingCart shoppingCart = new ShoppingCart();
-        String sql = """
-            SELECT * FROM easyshop.shopping_cart
-            INNER JOIN easyshop.products
-                ON products.product_id = shopping_cart.product_id
-            WHERE shopping_cart.user_id = ?;
-    """;
+        String sql =
+            """
+                SELECT * FROM easyshop.shopping_cart
+                INNER JOIN easyshop.products
+                    ON products.product_id = shopping_cart.product_id
+                WHERE shopping_cart.user_id = ?;
+            """;
         try (Connection connection = super.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
@@ -66,9 +67,10 @@ public class MySqlShoppingCartDao extends MySqlDaoBase implements ShoppingCartDa
 
     @Override
     public ShoppingCart create(int userId, ShoppingCartItem shoppingCartItem) {
+        System.out.println("Create is called");
         ShoppingCart shoppingCart = new ShoppingCart();
-        Map<Integer,ShoppingCartItem> cartItemMap = new HashMap<>();
-        int i = 0;
+
+
         String sql =
                 """
                 INSERT INTO easyshop.shopping_cart(user_id,product_id,quantity)
@@ -81,12 +83,8 @@ public class MySqlShoppingCartDao extends MySqlDaoBase implements ShoppingCartDa
             preparedStatement.setInt(3,shoppingCartItem.getQuantity());
 
             System.out.printf("Updated rows: %d", preparedStatement.executeUpdate());
-            try(ResultSet resultSet = preparedStatement.getResultSet()) {
-                while (resultSet.next()) {
-                    cartItemMap.put(++i, shoppingCartItem);
-                }
-            }
-            shoppingCart.setItems(cartItemMap);
+
+            shoppingCart.add(shoppingCartItem);
 
         }
         catch (SQLException e) {

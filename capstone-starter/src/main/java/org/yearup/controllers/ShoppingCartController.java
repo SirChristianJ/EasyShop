@@ -28,9 +28,10 @@ public class ShoppingCartController
 
 
     @Autowired
-    public ShoppingCartController(ShoppingCartDao shoppingCartDao, UserDao userDao) {
+    public ShoppingCartController(ShoppingCartDao shoppingCartDao, UserDao userDao, ProductDao productDao) {
         this.shoppingCartDao = shoppingCartDao;
         this.userDao = userDao;
+        this.productDao = productDao;
     }
 
     // each method in this controller requires a Principal object as a parameter
@@ -67,13 +68,18 @@ public class ShoppingCartController
 
     // add a POST method to add a product to the cart - the url should be
     // https://localhost:8080/cart/products/15 (15 is the productId to be added
-    /*@PostMapping()
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ShoppingCart addToCart(@RequestBody int userId)
+    @PostMapping()
+    @PreAuthorize("permitAll()")
+    public ShoppingCart insert(Principal principal, @RequestBody ShoppingCartItem shoppingCartItem)
     {
-        // insert the category
-        return shoppingCartDao.create(userId);
-    }*/
+        String userName = principal.getName();
+
+        // find database user by userId
+        User user = userDao.getByUserName(userName);
+        int userId = user.getId();
+
+        return  shoppingCartDao.create(userId, shoppingCartItem);
+    }
     // add a PUT method to update an existing product in the cart - the url should be
     // https://localhost:8080/cart/products/15 (15 is the productId to be updated)
     // the BODY should be a ShoppingCartItem - quantity is the only value that will be updated
