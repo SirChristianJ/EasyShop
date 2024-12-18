@@ -167,7 +167,7 @@ public class MySqlCategoryDao extends MySqlDaoBase implements CategoryDao
         try(Connection connection = super.getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(sql)){
             preparedStatement.setInt(1,categoryId);
-            
+
             preparedStatement.executeUpdate();
 
             System.out.printf("Updated rows:%d\n", preparedStatement.executeUpdate());
