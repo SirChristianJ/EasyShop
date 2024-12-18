@@ -80,6 +80,7 @@ public class ShoppingCartController
 
         ShoppingCartItem item = new ShoppingCartItem();
         item.setProduct(productDao.getById(product_id));
+        item.setQuantity(1);
 
         return shoppingCartDao.create(userId, product_id, item);
     }
@@ -90,5 +91,18 @@ public class ShoppingCartController
 
     // add a DELETE method to clear all products from the current users cart
     // https://localhost:8080/cart
+    // add annotation to call this method for a DELETE action - the url path must include the categoryId
+    // add annotation to ensure that only an ADMIN can call this function
+    @DeleteMapping("")
+    @PreAuthorize("permitAll()")
+    public ShoppingCart clearCart(Principal principal){
+        String userName = principal.getName();
+
+        // find database user by userId
+        User user = userDao.getByUserName(userName);
+        int userId = user.getId();
+
+        return shoppingCartDao.delete(userId);
+    }
 
 }
