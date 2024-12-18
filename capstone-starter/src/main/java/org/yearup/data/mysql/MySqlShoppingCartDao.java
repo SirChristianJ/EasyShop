@@ -86,8 +86,8 @@ public class MySqlShoppingCartDao extends MySqlDaoBase implements ShoppingCartDa
 
         String sql =
                 """
-                INSERT INTO easyshop.shopping_cart(user_id,product_id,quantity)
-                VALUES(?,?,?)
+                INSERT INTO easyshop.shopping_cart(user_id,product_id)
+                VALUES(?,?)
                 ON DUPLICATE KEY UPDATE shopping_cart.quantity = quantity +1;
                 """;
         try(Connection connection = super.getConnection();
@@ -95,9 +95,8 @@ public class MySqlShoppingCartDao extends MySqlDaoBase implements ShoppingCartDa
             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setInt(1,userId);
             preparedStatement.setInt(2,product_id);
-            preparedStatement.setInt(3,shoppingCartItem.getQuantity());
 
-            System.out.printf("Updated rows: %d", preparedStatement.executeUpdate());
+            System.out.printf("Updated rows: %d\n", preparedStatement.executeUpdate());
 
             shoppingCart.add(shoppingCartItem);
 
