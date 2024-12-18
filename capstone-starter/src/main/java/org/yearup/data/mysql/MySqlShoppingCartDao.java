@@ -29,10 +29,23 @@ public class MySqlShoppingCartDao extends MySqlDaoBase implements ShoppingCartDa
         ShoppingCart shoppingCart = new ShoppingCart();
         String sql =
             """
-                SELECT * FROM easyshop.shopping_cart
-                INNER JOIN easyshop.products
-                    ON products.product_id = shopping_cart.product_id
-                WHERE shopping_cart.user_id = ?;
+            SELECT
+                    user_id,
+                    products.product_id,
+                    quantity,
+                    products.name,
+                    products.price,
+                    products.category_id,
+                    products.description,
+                    products.color,
+                    products.image_url,
+                    products.stock,
+                    products.featured
+            FROM easyshop.shopping_cart
+            INNER JOIN easyshop.products
+                    ON	products.product_id = shopping_cart.product_id
+            WHERE shopping_cart.user_id = ?
+            GROUP BY(shopping_cart.product_id);
             """;
         try (Connection connection = super.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
@@ -66,20 +79,22 @@ public class MySqlShoppingCartDao extends MySqlDaoBase implements ShoppingCartDa
 
 
     @Override
-    public ShoppingCart create(int userId, ShoppingCartItem shoppingCartItem) {
+    public ShoppingCart create(int userId, int product_id,ShoppingCartItem shoppingCartItem) {
         System.out.println("Create is called");
-        ShoppingCart shoppingCart = new ShoppingCart();
+        ShoppingCart shoppingCart = getByUserId(userId);
 
 
         String sql =
                 """
                 INSERT INTO easyshop.shopping_cart(user_id,product_id,quantity)
-                VALUES(?,?,?);
+                VALUES(?,?,?)
+                ON DUPLICATE KEY UPDATE shopping_cart.quantity = quantity +1;
                 """;
         try(Connection connection = super.getConnection();
+
             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setInt(1,userId);
-            preparedStatement.setInt(2,shoppingCartItem.getProductId());
+            preparedStatement.setInt(2, shoppingCartItem.getProductId());
             preparedStatement.setInt(3,shoppingCartItem.getQuantity());
 
             System.out.printf("Updated rows: %d", preparedStatement.executeUpdate());
