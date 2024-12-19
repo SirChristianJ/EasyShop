@@ -25,28 +25,26 @@ public class MySqlShoppingCartDao extends MySqlDaoBase implements ShoppingCartDa
 
     @Override
     public ShoppingCart getByUserId(int userId) {
-        System.out.println("getByUserId called");
         ShoppingCart shoppingCart = new ShoppingCart();
         String sql =
-            """
-            SELECT
-                    user_id,
-                    products.product_id,
-                    quantity,
-                    products.name,
-                    products.price,
-                    products.category_id,
-                    products.description,
-                    products.color,
-                    products.image_url,
-                    products.stock,
-                    products.featured
-            FROM easyshop.shopping_cart
-            INNER JOIN easyshop.products
-                    ON	products.product_id = shopping_cart.product_id
-            WHERE shopping_cart.user_id = ?
-            GROUP BY(shopping_cart.product_id);
-            """;
+                """
+                    SELECT
+                            user_id,
+                            products.product_id,
+                            quantity,
+                            products.name,
+                            products.price,
+                            products.category_id,
+                            products.description,
+                            products.color,
+                            products.image_url,
+                            products.stock,
+                            products.featured
+                    FROM easyshop.shopping_cart
+                    INNER JOIN easyshop.products
+                            ON	products.product_id = shopping_cart.product_id
+                    WHERE shopping_cart.user_id = ?;
+                """;
         try (Connection connection = super.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
@@ -77,12 +75,9 @@ public class MySqlShoppingCartDao extends MySqlDaoBase implements ShoppingCartDa
         return shoppingCart;
     }
 
-
     @Override
     public ShoppingCart create(int userId, int product_id,ShoppingCartItem shoppingCartItem) {
-        System.out.println("Create is called");
         ShoppingCart shoppingCart = getByUserId(userId);
-
 
         String sql =
                 """
@@ -111,11 +106,11 @@ public class MySqlShoppingCartDao extends MySqlDaoBase implements ShoppingCartDa
     public ShoppingCart delete(int userId) {
         String sql =
                 """
-                DELETE FROM easyshop.shopping_cart WHERE user_id = (?);
+                    DELETE FROM easyshop.shopping_cart WHERE user_id = (?);
                 """;
-        try(Connection connection = super.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(sql)){
-            preparedStatement.setInt(1,userId);
+        try (Connection connection = super.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setInt(1, userId);
 
             preparedStatement.executeUpdate();
 
@@ -124,7 +119,35 @@ public class MySqlShoppingCartDao extends MySqlDaoBase implements ShoppingCartDa
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+
         return getByUserId(userId);
+    }
+
+    @Override
+    public void update(int userId, int product_id, int quantity) {
+        String sql =
+                """
+                    UPDATE easyshop.shopping_cart
+                    SET
+                        quantity = (?)
+                    WHERE user_id = (?) AND product_id = (?);
+                """;
+
+        try (Connection connection = super.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setInt(1, quantity);
+            preparedStatement.setInt(2,userId);
+            preparedStatement.setInt(3,product_id);
+
+            preparedStatement.executeUpdate();
+
+            System.out.printf("Updated rows:%d\n", preparedStatement.executeUpdate());
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        //return getByUserId(userId);
     }
 
 

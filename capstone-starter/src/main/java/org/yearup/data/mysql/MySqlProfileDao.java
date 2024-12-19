@@ -44,4 +44,46 @@ public class MySqlProfileDao extends MySqlDaoBase implements ProfileDao
         }
     }
 
+    @Override
+    public Profile getProfile(int userId) {
+        Profile profile = null;
+        String sql =
+                """
+                    SELECT user_id,
+                           first_name,
+                           last_name,
+                           phone,
+                           email,
+                           address,
+                           city,
+                           state,
+                           zip
+                    FROM easyshop.profiles
+                    WHERE user_id = (?);
+                """;
+        try (Connection connection = super.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)){
+            preparedStatement.setInt(1,userId);
+            try (ResultSet resultSet = preparedStatement.executeQuery()){
+                while (resultSet.next()){
+                    profile = new Profile(
+                                    resultSet.getInt("user_id"),
+                                    resultSet.getString("first_name"),
+                                    resultSet.getString("last_name"),
+                                    resultSet.getString("phone"),
+                                    resultSet.getString("email"),
+                                    resultSet.getString("address"),
+                                    resultSet.getString("city"),
+                                    resultSet.getString("state"),
+                                    resultSet.getString("zip")
+                    );
+                }
+            }
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return profile;
+    }
+
 }

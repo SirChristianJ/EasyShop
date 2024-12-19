@@ -34,32 +34,27 @@ public class ShoppingCartController
         this.productDao = productDao;
     }
 
+    private int retrieveUserId(Principal principal){
+        if (principal == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated.");
+        }
+        System.out.println("Principal name: " + principal.getName());
+
+        // get the currently logged in username
+        String userName = principal.getName();
+
+        // find database user by userId
+        User user = userDao.getByUserName(userName);
+        return user.getId();
+    }
     // each method in this controller requires a Principal object as a parameter
     @GetMapping("")
     @PreAuthorize("permitAll()")
     public ShoppingCart getCart(Principal principal) {
         try {
-            if (principal == null) {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated.");
-            }
-            System.out.println("Principal name: " + principal.getName());
+            int userid = retrieveUserId(principal);
 
-            // get the currently logged in username
-            String userName = principal.getName();
-
-            // find database user by userId
-            User user = userDao.getByUserName(userName);
-            int userId = user.getId();
-            System.out.println(userId);
-            ShoppingCart cart = shoppingCartDao.getByUserId(user.getId());
-
-            if (cart == null || cart.getItems().isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Shopping cart is empty.");
-            }
-
-            System.out.println("Shopping Cart Items: " + cart.getItems().size());
-
-            return cart;
+            return shoppingCartDao.getByUserId(userid);
         }
         catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Oops... our bad.");
@@ -72,11 +67,7 @@ public class ShoppingCartController
     @PreAuthorize("permitAll()")
     public ShoppingCart addToCart(@PathVariable int product_id, Principal principal)
     {
-        String userName = principal.getName();
-
-        // find database user by userId
-        User user = userDao.getByUserName(userName);
-        int userId = user.getId();
+        int userId = retrieveUserId(principal);
 
         ShoppingCartItem item = new ShoppingCartItem();
         item.setProduct(productDao.getById(product_id));
@@ -84,10 +75,16 @@ public class ShoppingCartController
 
         return shoppingCartDao.create(userId, product_id, item);
     }
+
     // add a PUT method to update an existing product in the cart - the url should be
     // https://localhost:8080/cart/products/15 (15 is the productId to be updated)
     // the BODY should be a ShoppingCartItem - quantity is the only value that will be updated
-
+    @PutMapping("/products/{product_id}")
+    @PreAuthorize("permitAll()")
+    public void updateCart(@PathVariable int product_id, @RequestBody int quantity, Principal principal){
+        int userId = retrieveUserId(principal);
+        shoppingCartDao.update(userId,product_id,quantity);
+    }
 
     // add a DELETE method to clear all products from the current users cart
     // https://localhost:8080/cart
@@ -96,11 +93,7 @@ public class ShoppingCartController
     @DeleteMapping("")
     @PreAuthorize("permitAll()")
     public ShoppingCart clearCart(Principal principal){
-        String userName = principal.getName();
-
-        // find database user by userId
-        User user = userDao.getByUserName(userName);
-        int userId = user.getId();
+        int userId = retrieveUserId(principal);
 
         return shoppingCartDao.delete(userId);
     }
