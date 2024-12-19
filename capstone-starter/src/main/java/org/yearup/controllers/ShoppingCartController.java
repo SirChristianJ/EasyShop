@@ -38,7 +38,7 @@ public class ShoppingCartController
         if (principal == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated.");
         }
-        System.out.println("Principal name: " + principal.getName());
+        System.out.println("\nPrincipal name: " + principal.getName());
 
         // get the currently logged in username
         String userName = principal.getName();
